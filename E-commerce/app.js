@@ -9,6 +9,7 @@ app.set('views', './views');
 
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/shop');
+const accountRoutes = require('./routes/account');
 
 const mongoose=require('mongoose');
 
@@ -34,7 +35,7 @@ app.use((req,res,next)=>{
 // routes
 app.use('/admin', adminRoutes);
 app.use(userRoutes);
-
+app.use(accountRoutes);
 
 app.use(errorController.get404Page);
 
