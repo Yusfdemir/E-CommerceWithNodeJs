@@ -1,11 +1,11 @@
 extends ../layouts/main-layout.pug
 
-block content
+block content 
     if (action !== 'undefined' && action === 'delete')
         div.alert.alert-danger The product has been deleted.
-    
+
     if (action !== 'undefined' && action === 'edit')
-        div.alert.alert-success The product has been updated.     
+        div.alert.alert-success The product has been updated.
     
     if products.length > 0
         table.table.table-bordered
@@ -31,4 +31,4 @@ block content
                                 input(type='hidden' name='productid' value=`${product._id}`)
                                 button(type='submit').btn.btn-danger.btn-sm Delete
     else
-        h1 No Products                        
+        h1 No Products

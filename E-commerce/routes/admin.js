@@ -1,30 +1,30 @@
 const express = require('express');
 const router = express.Router();
-
+const isAuthenticated=require('../middleware/authentication');
 const adminController = require('../controllers/admin');
 
-router.get('/products', adminController.getProducts);
+router.get('/products',isAuthenticated, adminController.getProducts);
 
-router.get('/add-product', adminController.getAddProduct);
+router.get('/add-product', isAuthenticated,adminController.getAddProduct);
 
-router.post('/add-product', adminController.postAddProduct);
+router.post('/add-product',isAuthenticated, adminController.postAddProduct);
 
-router.get('/products/:productid', adminController.getEditProduct);
+router.get('/products/:productid',isAuthenticated, adminController.getEditProduct);
 
-router.post('/products', adminController.postEditProduct);
+router.post('/products',isAuthenticated, adminController.postEditProduct);
 
-router.post('/delete-product',adminController.postDeleteProduct);
+router.post('/delete-product',isAuthenticated,adminController.postDeleteProduct);
 
-router.get('/add-category', adminController.getAddCategory);
+router.get('/add-category',isAuthenticated, adminController.getAddCategory);
 
-router.post('/add-category', adminController.postAddCategory);
+router.post('/add-category',isAuthenticated, adminController.postAddCategory);
 
-router.get('/categories', adminController.getCategories);
+router.get('/categories', isAuthenticated,adminController.getCategories);
 
-router.get('/categories/:categoryid', adminController.getEditCategory);
+router.get('/categories/:categoryid',isAuthenticated, adminController.getEditCategory);
 
-router.post('/categories', adminController.postEditCategory);
+router.post('/categories',isAuthenticated, adminController.postEditCategory);
 
-router.post('/delete-category', adminController.postDeleteCategory);
+router.post('/delete-category',isAuthenticated, adminController.postDeleteCategory);
 
 module.exports = router;

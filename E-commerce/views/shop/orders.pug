@@ -14,13 +14,13 @@ block content
                             th Price 
                             th Quantity
                     tbody 
-                        each product in order.items
+                        each item in order.items
                             tr 
                                 td 
-                                    img(src=`/img/${product.imageUrl}` width="80")
-                                td #{product.name}
-                                td #{product.price}
-                                td #{product.quantity}
+                                    img(src=`img/${item.product.imageUrl}` width="80")
+                                td #{item.product.name}
+                                td #{item.product.price}
+                                td #{item.product.quantity}
                     tfoot 
                         tr 
                             td(colspan='2') #{order.date}

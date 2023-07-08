@@ -1,6 +1,6 @@
 const Product = require('../models/product');
 const Category = require('../models/category');
-const product = require('../models/product');
+const Order = require('../models/order');
 
 exports.getIndex = (req, res, next) => {
     
@@ -15,7 +15,10 @@ exports.getIndex = (req, res, next) => {
                         title: 'Shopping',
                         products: products,
                         path: '/',
-                        categories:categories
+                        categories:categories,
+                        //With Cookies-> isAuthenticated:req.cookies.isAuthenticated==='true'
+                        //Session
+                        isAuthenticated:req.session.isAuthenticated
                     });   
                 })
         })
@@ -36,7 +39,8 @@ exports.getProducts = (req, res, next) => {
                 title: 'Products',
                 products: products,
                 path: '/',
-                categories:categories
+                categories:categories,
+                isAuthenticated:req.session.isAuthenticated
             });   
         })   
     })
@@ -59,7 +63,8 @@ exports.getProductsByCategoryId = (req, res, next) => {
                 products: products,
                 categories:model.categories,
                 selectedCategory:categoryid,
-                path: '/products'
+                path: '/products',
+                isAuthenticated:req.session.isAuthenticated
             });
         })
         .catch((err)=>{console.log(err)});
@@ -74,7 +79,8 @@ exports.getProduct = (req, res, next) => {
         res.render("shop/product-detail",{
             title:product.name,
             product:product,
-            path:'/products'
+            path:'/products',
+            isAuthenticated:req.session.isAuthenticated
         })
     })
     .catch((err)=>{console.log(err)});
@@ -103,7 +109,8 @@ exports.getCart = (req, res, next) => {
             res.render('shop/cart', {
                 title: 'Cart',
                 path: '/cart',
-                products:products
+                products:products,
+                isAuthenticated:req.session.isAuthenticated
             }); 
         })
         .catch(err=>{console.log(err)}) 
@@ -133,23 +140,57 @@ exports.postCartItemDelete = (req, res, next) => {
 }
 
 exports.getOrders = (req, res, next) => {
-    req.user.getOrders() 
-        .then(orders=>{
+
+    Order
+        .find({ 'user.userId': req.user._id })
+        .then(orders => {
+            console.log(orders);
             res.render('shop/orders', {
                 title: 'Orders',
                 path: '/orders',
-                orders:orders
+                orders: orders,
+                isAuthenticated:req.session.isAuthenticated
             });
-        })
-        .catch(err=>{console.log(err)})
 
-    
-}
-exports.postOrder = (req, res, next) => {
-    req.user.addOrder()
-        .then(()=>{
-            res.redirect('/cart')
         })
-        .catch(err=>{console.log(err)})
+        .catch(err => console.log(err));
 }
+
+exports.postOrder = (req, res, next) => {
+
+    req.user
+        .populate('cart.items.productId')
+        .execPopulate()
+        .then(user => {
+            const order = new Order({
+                user: {
+                    userId: req.user._id,
+                    name: req.user.name,
+                    email: req.user.email
+                },
+                items: user.cart.items.map(p => {
+                    return {
+                        product: {
+                            _id: p.productId._id,
+                            name: p.productId.name,
+                            price: p.productId.price,
+                            imageUrl: p.productId.imageUrl
+                        },
+                        quantity: p.quantity
+                    };
+                })
+            });
+            return order.save();
+        })
+        .then(() => {
+            return req.user.clearCart();
+        })
+        .then(() => {
+            res.redirect('/orders');
+        })
+        .catch(err => {
+            console.log(err);
+        });
+}
+
 

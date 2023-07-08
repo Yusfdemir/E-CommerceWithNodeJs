@@ -11,16 +11,19 @@ exports.getProducts = (req, res, next) => {
             title: 'Admin Products',
             products: products,
             path: '/admin/products',
-            action:req.query.action
+            action:req.query.action,
+            isAuthenticated:req.session.isAuthenticated
             });
         })
         .catch((err)=>{console.log(err)});
 }
 
 exports.getAddProduct = (req, res, next) => {
+    
     res.render('admin/add-product', {
         title: 'New Product',
         path: '/admin/add-product',
+        isAuthenticated:req.session.isAuthenticated
     }); 
 }
 
@@ -74,7 +77,8 @@ exports.getEditProduct = (req, res, next) => {
                         title: 'Edit Product',
                         path: '/admin/products',
                         product:product,
-                        categories:categories
+                        categories:categories,
+                        isAuthenticated:req.session.isAuthenticated
                     }); 
                 })
         })
@@ -123,7 +127,8 @@ exports.postDeleteProduct=(req,res,next) => {
 exports.getAddCategory=(req,res,next)=>{
     res.render('admin/add-category',{
         title:'New Category',
-        path:'admin/add-category'
+        path:'admin/add-category',
+        isAuthenticated:req.session.isAuthenticated
     });
 }
 
@@ -148,7 +153,8 @@ exports.getCategories=(req,res,next)=>{
                     title:'Categories',
                     path:'/admin/categories',
                     categories:categories,
-                    action:req.query.action
+                    action:req.query.action,
+                    isAuthenticated:req.session.isAuthenticated
                 });
             })
             .catch(err=>{console.log(err)})      
@@ -160,7 +166,8 @@ exports.getEditCategory=(req,res,next)=>{
             res.render('admin/edit-category',{
                 title:'Edit Category',
                 path:'admin/categories',
-                category:category
+                category:category,
+                isAuthenticated:req.session.isAuthenticated
             })
         })
         .catch(err=>{console.log(err)})
