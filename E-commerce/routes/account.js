@@ -9,6 +9,8 @@ router.post('/login',accountController.postLogin);
 router.get('/register',accountController.getRegister); 
 router.post('/register',accountController.postRegister); 
 
+router.get('/logout',accountController.getLogout); 
+
 router.get('/reset-password',accountController.getReset); 
 router.post('/reset-password',accountController.postReset);
 
