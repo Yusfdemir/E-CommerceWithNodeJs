@@ -4,16 +4,18 @@ block styles
     link(rel="stylesheet" href="/css/forms.css")
 
 block content
+    if errorMessage 
+        div.alert.alert-danger.col-sm-7 #{errorMessage}
     form(action="/login" method="POST")
         input(type='hidden' name="_csrf" value=`${csrfToken}`)
         .form-group.row
             label(for="email").col-sm-2.col-form-label Email
-            .col-sm-5
+            .col-sm-5.pr-0
                 input.form-control#name(type="text" name="email")  
 
         .form-group.row
             label(for="password").col-sm-2.col-form-label Password
-            .col-sm-5
+            .col-sm-5.pr-0
                 input.form-control#password(type="password" name="password")
 
         .form-group.row
