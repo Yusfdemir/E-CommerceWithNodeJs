@@ -8,6 +8,7 @@ const mongoose=require('mongoose');
 const cookieParser = require('cookie-parser');
 const session=require('express-session');
 const mongoDbStore=require('connect-mongodb-session')(session);
+const csurf=require('csurf');
 
 app.set('view engine', 'pug');
 app.set('views', './views');
@@ -57,7 +58,7 @@ app.use((req,res,next)=>{
         })
         .catch(err=>{console.log(err)})
 })
-
+app.use(csurf());
 // routes
 app.use('/admin', adminRoutes);
 app.use(userRoutes);

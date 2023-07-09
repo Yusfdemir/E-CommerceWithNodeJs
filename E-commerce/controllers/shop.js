@@ -15,10 +15,10 @@ exports.getIndex = (req, res, next) => {
                         title: 'Shopping',
                         products: products,
                         path: '/',
-                        categories:categories,
+                        categories:categories
                         //With Cookies-> isAuthenticated:req.cookies.isAuthenticated==='true'
                         //Session
-                        isAuthenticated:req.session.isAuthenticated
+                        
                     });   
                 })
         })
@@ -39,8 +39,7 @@ exports.getProducts = (req, res, next) => {
                 title: 'Products',
                 products: products,
                 path: '/',
-                categories:categories,
-                isAuthenticated:req.session.isAuthenticated
+                categories:categories
             });   
         })   
     })
@@ -63,8 +62,7 @@ exports.getProductsByCategoryId = (req, res, next) => {
                 products: products,
                 categories:model.categories,
                 selectedCategory:categoryid,
-                path: '/products',
-                isAuthenticated:req.session.isAuthenticated
+                path: '/products'
             });
         })
         .catch((err)=>{console.log(err)});
@@ -79,8 +77,7 @@ exports.getProduct = (req, res, next) => {
         res.render("shop/product-detail",{
             title:product.name,
             product:product,
-            path:'/products',
-            isAuthenticated:req.session.isAuthenticated
+            path:'/products'
         })
     })
     .catch((err)=>{console.log(err)});
@@ -109,8 +106,7 @@ exports.getCart = (req, res, next) => {
             res.render('shop/cart', {
                 title: 'Cart',
                 path: '/cart',
-                products:products,
-                isAuthenticated:req.session.isAuthenticated
+                products:products
             }); 
         })
         .catch(err=>{console.log(err)}) 
@@ -148,8 +144,7 @@ exports.getOrders = (req, res, next) => {
             res.render('shop/orders', {
                 title: 'Orders',
                 path: '/orders',
-                orders: orders,
-                isAuthenticated:req.session.isAuthenticated
+                orders: orders
             });
 
         })

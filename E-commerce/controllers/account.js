@@ -4,8 +4,8 @@ const bcrypt=require('bcrypt');
 exports.getLogin=(req,res,next)=>{
     res.render('account/login',{
         path:'/login',
-        title:'Login',
-        isAuthenticated:req.session.isAuthenticated
+        title:'Login'
+        
     });
 }
 
@@ -45,8 +45,8 @@ exports.postLogin=(req,res,next)=>{
 exports.getRegister=(req,res,next)=>{
     res.render('account/register',{
         path:'/register',
-        title:'Register',
-        isAuthenticated:req.session.isAuthenticated
+        title:'Register'
+        
     });
 }
 
