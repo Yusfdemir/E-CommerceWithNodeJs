@@ -16,6 +16,11 @@ const userSchema=mongoose.Schema({
     },
     resetToken:String,
     resetTokenExpiration: Date,
+    isAdmin:{
+        type:Boolean,
+        default:false
+    }
+    ,
     cart:{
         items:[{ 
             productId:{
