@@ -1,6 +1,8 @@
 const User=require('../models/user');
 const bcrypt=require('bcrypt');
 const sgMail=require('@sendgrid/mail');
+const crypto=require('crypto');
+
 sgMail.setApiKey('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')
 
 exports.getLogin=(req,res,next)=>{
@@ -91,6 +93,7 @@ exports.postRegister=(req,res,next)=>{
         })
         .then(()=>{
             res.redirect('/login')
+        
             const msg = {
                 to: email,
                 from: 'josephaaa43@gmail.com',
@@ -108,14 +111,89 @@ exports.postRegister=(req,res,next)=>{
 }
 
 exports.getReset=(req,res,next)=>{
+    var errorMessage=req.session.errorMessage;
+    delete req.session.errorMessage;
+
     res.render('account/reset',{
-        path:'/reset',
-        title:'Reset'
+        path:'/reset-password',
+        title:'Reset Password',
+        errorMessage: errorMessage
     });
 }
 
 exports.postReset=(req,res,next)=>{
-    res.redirect('/login');
+    const email=req.body.email;
+    crypto.randomBytes(32,(err,buffer)=>{
+        if(err){
+            console.log(err);
+            return res.redirect('/reset-password');
+        }
+        const token=buffer.toString('hex');
+        
+        User.findOne({email:email})
+            .then(user=>{
+                if(!user){
+                    req.session.errorMessage='Mail adresi bulunamadı';
+                    req.session.save(function(err){
+                    console.log(err);
+                    return res.redirect('/reset-password');
+                    });
+                }
+                user.resetToken=token;
+                user.resetTokenExpiration=Date.now()+3600000;
+                return user.save();
+            })
+            .then(result=>{
+                res.redirect('/');
+
+                const msg = {
+                    to: email,
+                    from: 'josephaaa43@gmail.com',
+                    subject: 'Parola Reset',
+                    html: `
+                        <p>Parolanızı güncellemek için aşağıdaki linke tıklayınız</p>
+                        <p><a href="http://localhost:3000/resert-password/${token}">Reset Password </a></p>
+                    `,
+                };
+                sgMail.send(msg);
+            }).catch(err=>{console.log(err)});
+    });
+
+}
+
+exports.getNewPassword=(req,res,next)=>{
+    var errorMessage=req.session.errorMessage;
+    delete req.session.errorMessage;
+    const token=req.params.token;
+    User.findOne({resetToken:token,resetTokenExpiration:{$gt :Date.now()}})
+        .then(user=>{
+            res.render('account/new-password',{
+                path:'/new-password',
+                title:'New Password',
+                errorMessage: errorMessage,
+                userId:user._id.toString(),
+                passwordToken:token
+            });
+        }).catch(err=>{console.log(err)});
+}
+
+exports.postNewPassword=(req,res,next)=>{
+    const newPassword=req.body.password;
+    const userId=req.body.userId;
+    const token=req.body.passwordToken;
+    let _user;
+    User.findOne({resetToken:token,resetTokenExpiration:{$gt :Date.now()},_id:userId})
+        .then(user=>{
+            _user=user;
+            return bcrypt.hash(newPassword,10);
+        }).then(hashedPassword=>{
+            _user.password=hashedPassword;
+            _user.resetToken=undefined;
+            _user.resetTokenExpiration=undefined;
+            return _user.save();
+        }).then(()=>{
+            res.redirect('/login');
+        }).catch(err=>{console.log(err)})
 }
 
 exports.getLogout=(req,res,next)=>{
@@ -125,3 +203,4 @@ exports.getLogout=(req,res,next)=>{
     })
    
 }
+
