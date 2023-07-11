@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const Category=require('../models/category');
+const fs=require('fs');
 //const mongoose=require('mongoose');
 exports.getProducts = (req, res, next) => {
     Product.find({userId:req.user._id})
@@ -142,36 +143,51 @@ exports.postEditProduct = (req, res, next) => {
     const image=req.file;
     const description=req.body.description;
     const ids=req.body.categoryids;
-    const product={
-        name:name,
-        price:price,
-        description:description,
-        categories:ids
-    };
-    if(image){
-        product.imageUrl=image.filename;
-    }
+    
+    //Resim güncellenince eski resmi silmeliyiz
+    Product.findOne({_id:id,userId:req.user._id})
+        .then(product=>{
+            if(!product){
+                return res.redirect('/')
+            }
+            product.name=name;
+            product.price=price;
+            product.description=description;
+            product.categories=ids;
 
-    Product.updateOne({_id:id,userId:req.user._id},{
-        $set:product
-    })
-    .then(()=>{
-        res.redirect('/admin/products?action=edit');
-    })
-    .catch((err)=>{next(err)})
+            if(image){
+                //Resmi sil
+                fs.unlink('public/img/'+product.imageUrl,err=>{
+                    if(err){ console.log(err);}   
+                })
+                product.imageUrl=image.filename;
+            }
+            return product.save()
+        }).then(result=>{
+            res.redirect('/admin/products?action=edit');
+        }).catch((err)=>{next(err)})       
 }
 
 exports.postDeleteProduct=(req,res,next) => {
     const id=req.body.productid;
 
-    Product.deleteOne({_id:id,userId:req.user._id})
-        .then((result)=>{
+    Product.findOne({_id:id,userId:req.user._id})
+        .then(product=>{
+            if(!product){
+                return next(new Error('Silinmek istenen ürün bulunamadı'))
+            }
+            fs.unlink('public/img/'+product.imageUrl,err=>{
+                if(err){ console.log(err);}   
+            });
+            return Product.deleteOne({_id:id,userId:req.user._id})        
+        }).then((result)=>{
             if(result.deletedCount===0){
-                return res.redirect('/');
+                return next(new Error('Silinmek istenen ürün bulunamadı'))
             }
             res.redirect('/admin/products?action=delete');
         })
         .catch((err)=>{next(err)})
+        
 }
 
 // CATEGORY İŞLEMLERİ
