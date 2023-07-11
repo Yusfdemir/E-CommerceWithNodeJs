@@ -1,6 +1,6 @@
 const Product = require('../models/product');
 const Category=require('../models/category');
-
+//const mongoose=require('mongoose');
 exports.getProducts = (req, res, next) => {
     Product.find({userId:req.user._id})
         .populate('userId','name -_id')
@@ -15,28 +15,45 @@ exports.getProducts = (req, res, next) => {
             
             });
         })
-        .catch((err)=>{console.log(err)});
+        .catch((err)=>{next(err)});
 }
 
 exports.getAddProduct = (req, res, next) => {
     
     res.render('admin/add-product', {
         title: 'New Product',
-        path: '/admin/add-product'
-     
+        path: '/admin/add-product',
+        inputs: {
+            name: '',
+            price: '',
+            description: ''
+        } 
     }); 
 }
 
 exports.postAddProduct = (req, res, next) => {
     const name=req.body.name;
     const price=req.body.price;
-    const imageUrl=req.body.imageUrl;
+    const file=req.file;
     const description=req.body.description;
-    
+    if(!file){
+        return res.render('admin/add-product', {
+            title: 'New Product',
+            path: '/admin/add-product',
+            errorMessage:'Lütfen bir mesaj seçin',
+            inputs: {
+                name: name,
+                price: price,
+                description: description
+            } 
+        }); 
+    }
     const product= new Product({
+        //505 sayfasını test için hata oluşturuyor
+        // _id:mongoose.Schema.Types.ObjectId('643085d345d1b23f1c0a778d'),
         name:name,
         price:price,
-        imageUrl:imageUrl,
+        imageUrl:file.filename,
         description:description,
         userId:req.user
     })
@@ -44,10 +61,37 @@ exports.postAddProduct = (req, res, next) => {
     .then(result=>{
         res.redirect('/admin/products')
     })
-    .catch(err=>{console.log(err)})
-    
-
-    
+    .catch(err=>{
+        let message='';
+        if(err.name=='ValidationError'){
+            for(field in err.errors){
+                message+=err.errors[field].message+ '<br>';
+            }
+            res.render('admin/add-product', {
+                title: 'New Product',
+                path: '/admin/add-product',
+                errorMessage: message,
+                inputs:{
+                    name:name,
+                    price:price,
+                    description:description
+                } 
+            }); 
+        }else{
+            // res.render('admin/add-product', {
+            //     title: 'New Product',
+            //     path: '/admin/add-product',
+            //     errorMessage: 'Beklenmedik bir hata oluştu. Lütfen tekrar deneyin',
+            //     inputs:{
+            //         name:name,
+            //         price:price,
+            //         description:description
+            //     } 
+            // }); 
+            //res.redirect('/500');
+            next(err);
+        }   
+    })
 }
 
 exports.getEditProduct = (req, res, next) => {
@@ -85,7 +129,7 @@ exports.getEditProduct = (req, res, next) => {
                     }); 
                 })
         })
-        .catch(err=>{console.log(err)})
+        .catch(err=>{next(err)})
 
     
 }
@@ -95,23 +139,26 @@ exports.postEditProduct = (req, res, next) => {
     const id=req.body.id;
     const name=req.body.name;
     const price=req.body.price;
-    const imageUrl=req.body.imageUrl;
+    const image=req.file;
     const description=req.body.description;
     const ids=req.body.categoryids;
+    const product={
+        name:name,
+        price:price,
+        description:description,
+        categories:ids
+    };
+    if(image){
+        product.imageUrl=image.filename;
+    }
 
     Product.updateOne({_id:id,userId:req.user._id},{
-        $set:{
-            name:name,
-            price:price,
-            imageUrl:imageUrl,
-            description:description,
-            categories:ids
-        }
+        $set:product
     })
     .then(()=>{
         res.redirect('/admin/products?action=edit');
     })
-    .catch((err)=>{console.log(err)})
+    .catch((err)=>{next(err)})
 }
 
 exports.postDeleteProduct=(req,res,next) => {
@@ -124,7 +171,7 @@ exports.postDeleteProduct=(req,res,next) => {
             }
             res.redirect('/admin/products?action=delete');
         })
-        .catch((err)=>{console.log(err)})
+        .catch((err)=>{next(err)})
 }
 
 // CATEGORY İŞLEMLERİ
@@ -148,7 +195,7 @@ exports.postAddCategory=(req,res,next)=>{
         .then(result=>{
             res.redirect('/admin/categories?action=create');
         })
-        .catch(err=>{console.log(err)})
+        .catch(err=>{next(err)})
 }
 
 exports.getCategories=(req,res,next)=>{
@@ -162,7 +209,7 @@ exports.getCategories=(req,res,next)=>{
                     
                 });
             })
-            .catch(err=>{console.log(err)})      
+            .catch(err=>{next(err)})      
 }
 
 exports.getEditCategory=(req,res,next)=>{
@@ -175,7 +222,7 @@ exports.getEditCategory=(req,res,next)=>{
                 
             })
         })
-        .catch(err=>{console.log(err)})
+        .catch(err=>{next(err)})
 }
 
 exports.postEditCategory=(req,res,next)=>{
@@ -192,7 +239,7 @@ exports.postEditCategory=(req,res,next)=>{
     .then(()=>{
         res.redirect('/admin/categories?action=edit');
     })
-    .catch(err=>{console.log(err)})     
+    .catch(err=>{next(err)})     
 }
 
 exports.postDeleteCategory=(req,res,next)=>{
@@ -202,5 +249,5 @@ exports.postDeleteCategory=(req,res,next)=>{
         .then(()=>{
             res.redirect('/admin/categories?action=delete')
         })
-        .catch(err=>{console.log(err)})
+        .catch(err=>{next(err)})
 }

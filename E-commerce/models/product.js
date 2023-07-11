@@ -3,11 +3,21 @@ const mongoose=require('mongoose');
 const productSchema=mongoose.Schema({
     name:{
         type:String,
-        required:true
+        required:[true,'Ürün ismi girmelisiniz'],
+        minlength:[5,'Ürün ismi minimum 5 karakter içermeli'],
+        maxlenght:255
+        //lowercase:true
+        //trim:true
     },
     price:{
         type:Number,
-        reguired:true
+        reguired:function(){
+            return this.isActive;
+        },
+        min:0,
+        max:10000
+        // get:value=>Math.round(value),
+        // set:value=>Math.round(value)
     },
     description:String,
     imageUrl:String,

@@ -22,7 +22,7 @@ exports.getIndex = (req, res, next) => {
                     });   
                 })
         })
-        .catch((err)=>{console.log(err)});
+        .catch((err)=>{next(err)});
     
 }
 
@@ -43,7 +43,7 @@ exports.getProducts = (req, res, next) => {
             });   
         })   
     })
-    .catch((err)=>{console.log(err)});
+    .catch((err)=>{next(err)});
 }
 
 exports.getProductsByCategoryId = (req, res, next) => {
@@ -65,7 +65,7 @@ exports.getProductsByCategoryId = (req, res, next) => {
                 path: '/products'
             });
         })
-        .catch((err)=>{console.log(err)});
+        .catch((err)=>{next(err)});
 
     
 }
@@ -80,7 +80,7 @@ exports.getProduct = (req, res, next) => {
             path:'/products'
         })
     })
-    .catch((err)=>{console.log(err)});
+    .catch((err)=>{next(err)});
     
     
     /*Product.findByPk(req.params.productid)
@@ -109,7 +109,7 @@ exports.getCart = (req, res, next) => {
                 products:products
             }); 
         })
-        .catch(err=>{console.log(err)}) 
+        .catch(err=>{next(err)}) 
 }
 
 exports.postCart = (req, res, next) => {
@@ -121,7 +121,7 @@ exports.postCart = (req, res, next) => {
         .then(()=>{
             res.redirect('/cart')
         })
-        .catch(err=>{console.log(err)})
+        .catch(err=>{next(err)})
 }
 
 exports.postCartItemDelete = (req, res, next) => {
@@ -148,7 +148,7 @@ exports.getOrders = (req, res, next) => {
             });
 
         })
-        .catch(err => console.log(err));
+        .catch(err => next(err));
 }
 
 exports.postOrder = (req, res, next) => {
@@ -184,7 +184,7 @@ exports.postOrder = (req, res, next) => {
             res.redirect('/orders');
         })
         .catch(err => {
-            console.log(err);
+            next(err);
         });
 }
 

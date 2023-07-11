@@ -1,4 +1,5 @@
 const User=require('../models/user');
+const Login=require('../models/login');
 const bcrypt=require('bcrypt');
 const sgMail=require('@sendgrid/mail');
 const crypto=require('crypto');
@@ -20,36 +21,66 @@ exports.postLogin=(req,res,next)=>{
     const email=req.body.email;
     const password=req.body.password;
 
-   User.findOne({email:email})
-   .then(user=>{
-        if(!user){
-            req.session.errorMessage='Bu mail adresi ile herhangi bir kayıt bulunamamıştır';
-            req.session.save(function(err){
-                console.log(err);
-                return res.redirect('/login');
-            });
-            
-        }
-        //Girilen Password ile Databasede bulunan password karşılaştırılıyor 
-        bcrypt.compare(password,user.password)
-            .then(isSucces=>{
-                if(isSucces){
-                    //login
-                    req.session.user=user;
-                    req.session.isAuthenticated=true; 
-                    return req.session.save(function(err){
-                        console.log(err);
-                        var url=req.session.redirectTo || '/';
-                        delete req.session.redirectTo; 
-                        res.redirect(url);
+    const loginModel=new Login({
+        email:email,
+        password:password
+    });
+    loginModel.validate()
+        .then(()=>{
+            User.findOne({email:email})
+            .then(user=>{
+                 if(!user){
+                     req.session.errorMessage='Bu mail adresi ile herhangi bir kayıt bulunamamıştır';
+                     req.session.save(function(err){
+                        return res.redirect('/login');
+                     });
+                     
+                 }
+                 //Girilen Password ile Databasede bulunan password karşılaştırılıyor 
+                 bcrypt.compare(password,user.password)
+                     .then(isSucces=>{
+                        if(isSucces){
+                            //login
+                            req.session.user=user;
+                            req.session.isAuthenticated=true; 
+                            return req.session.save(function(err){
+                                console.log(err);
+                                var url=req.session.redirectTo || '/';
+                                delete req.session.redirectTo; 
+                                res.redirect(url);
+                            })
+                        }
+                        req.session.errorMessage='Hatalı E-posta veya parola girdiniz !!!';
+                        req.session.save(function(err){
+                           return res.redirect('/login');
+                        });
                     })
+                    .catch(err=>{
+                        console.log(err);
+                    })
+            }).catch(err=>console.log(err));
+        })
+        .catch(err=>{
+            
+            if(err.name=='ValidationError'){
+                let message='';
+                for(field in err.errors){
+                message+=err.errors[field].message+ '<br>';
                 }
-                res.redirect('/login');
-            })
-            .catch(err=>{
-                console.log(err);
-            })
-   }).catch(err=>console.log(err));
+                res.render('account/login',{
+                    path:'/login',
+                    title:'Login',
+                    errorMessage:message
+                    
+                });
+            }
+            else{
+                next(err);
+            }
+        })
+
+
+  
 
    
 }
@@ -82,7 +113,6 @@ exports.postRegister=(req,res,next)=>{
             return bcrypt.hash(password,10);
         })
         .then(hashedPassword=>{
-            console.log(hashedPassword)
             const newUser=new User({
                 name:name,
                 email:email,
@@ -104,7 +134,21 @@ exports.postRegister=(req,res,next)=>{
             
         })
         .catch(err=>{
-            console.log(err)
+            if(err.name=='ValidationError'){
+                let message='';
+                for(field in err.errors){
+                message+=err.errors[field].message+ '<br>';
+                }
+                res.render('account/register',{
+                    path:'/register',
+                    title:'Register',
+                    errorMessage:message
+                    
+                });
+            }
+            else{
+                next(err);
+            }
         })
    
 
@@ -125,7 +169,6 @@ exports.postReset=(req,res,next)=>{
     const email=req.body.email;
     crypto.randomBytes(32,(err,buffer)=>{
         if(err){
-            console.log(err);
             return res.redirect('/reset-password');
         }
         const token=buffer.toString('hex');
@@ -135,8 +178,7 @@ exports.postReset=(req,res,next)=>{
                 if(!user){
                     req.session.errorMessage='Mail adresi bulunamadı';
                     req.session.save(function(err){
-                    console.log(err);
-                    return res.redirect('/reset-password');
+                        return res.redirect('/reset-password');
                     });
                 }
                 user.resetToken=token;
@@ -156,7 +198,7 @@ exports.postReset=(req,res,next)=>{
                     `,
                 };
                 sgMail.send(msg);
-            }).catch(err=>{console.log(err)});
+            }).catch(err=>{next(err)});
     });
 
 }
@@ -174,7 +216,7 @@ exports.getNewPassword=(req,res,next)=>{
                 userId:user._id.toString(),
                 passwordToken:token
             });
-        }).catch(err=>{console.log(err)});
+        }).catch(err=>{next(err)});
 }
 
 exports.postNewPassword=(req,res,next)=>{
@@ -193,7 +235,7 @@ exports.postNewPassword=(req,res,next)=>{
             return _user.save();
         }).then(()=>{
             res.redirect('/login');
-        }).catch(err=>{console.log(err)})
+        }).catch(err=>{next(err)})
 }
 
 exports.getLogout=(req,res,next)=>{

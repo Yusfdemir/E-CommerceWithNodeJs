@@ -4,7 +4,7 @@ block styles
     link(rel="stylesheet" href="/css/forms.css")
 
 block content
-    form(action="/admin/products" method="POST")
+    form(action="/admin/products" method="POST" enctype="multipart/form-data")
         input(type='hidden' name="_csrf" value=`${csrfToken}`)
         input(type="hidden" name="id" value=`${product._id}`)
         .form-group.row
@@ -20,7 +20,8 @@ block content
         .form-group.row
             label(for="imageUrl").col-sm-2.col-form-label Image
             .col-sm-10
-                input.form-control#image(type="text" name="imageUrl" value=`${product.imageUrl}`) 
+                img(src=`/img/${product.imageUrl}` width='100')
+                input#image(type="file" name="image")
 
         .form-group.row
             label(for="categoryid").col-sm-2.col-form-label Category
